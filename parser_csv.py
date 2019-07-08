@@ -17,8 +17,8 @@ class parser_csv():
         @return: pandas.DataFrame
         @description: 
     """
-    def __init__(self):
-        self.path = os.path.join(os.getcwd(), "data_day.csv")
+    def __init__(self, filename):
+        self.path = os.path.join(os.getcwd(), filename)
         self.df = pd.read_csv(self.path).fillna(value=0.0)
         self.df.loc[:, 'Date'] = pd.to_datetime(self.df['Date'],format="%Y-%m-%d")
 
