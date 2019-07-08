@@ -12,8 +12,18 @@ from statsmodels.tsa.stattools import acf, pacf
 
 class close():
     """
-        @varNmae: df
-        @varType: pandas.dataframe
+        @attribute: df
+        @type: pandas.dataframe
+
+        @method: func_fft
+        @param: self
+        @return: None
+        @description: fft
+
+        @method: func_wavelet
+        @param: self
+        @return: list<numpy.ndarray>
+        @description: wavelet stock series into 1 high freq and 2 low freq
     """
     def __init__(self):
         parsed_data = parser_csv("SPY.csv")
@@ -64,13 +74,21 @@ class close():
     def func_wavelet(self):
         tmp_df = self.df.copy()
         A2, D2, D1 = wavedec(tmp_df[self.name], "db4", level=2)
+        print(type(A2))
         return [A2, D2, D1]
 
-    def func_acf(self):
-        coeff = self.func_wavelet()
-        a2_acf, a2_confi = acf(coeff[0], nlags=20, alpha=True)
-        d2_acf, d2_confi = acf(coeff[1], nlags=20, alpha=True)
-        d1_acf, d1_confi = acf(coeff[2], nlags=20, alpha=True)
+    def func_acf(self, coeff):
+        """
+            @param: list<np.narray> coeff
+        """
+        print(type(np.asarray(coeff[0])))
+        a2_acf, a2_confi = acf(np.asarray(coeff[0]), nlags=20, alpha=True)
+        d2_acf, d2_confi = acf(np.asarray(coeff[1]), nlags=20, alpha=True)
+        d1_acf, d1_confi = acf(np.asarray(coeff[2]), nlags=20, alpha=True)
+
+        """
+        Draw the images of a2, d2, d1 acf
+        """
         plt.figure(figsize=(14, 20))
         plt.subplot(221)
         plt.gca().xaxis.set_major_locator(plt.MultipleLocator(1))
@@ -97,7 +115,28 @@ class close():
         plt.axhline(y=-1.96/np.sqrt(len(d1_acf)), linestyle="--", color="red")
         plt.axhline(y=1.96/np.sqrt(len(d1_acf)), linestyle="--", color="red")
         plt.show()
-
+        """
+        Draw end
+        """
+        return a2_acf, d2_acf, d1_acf
+    def func_diff(self):
+        """
+            @returnType: tuple<pd.Series>
+        """
+        coeff = self.func_wavelet()
+        a2, d2, d1 = coeff[0], coeff[1], coeff[2]
+        a2_diff = pd.Series(a2).diff(1)
+        d2_diff = pd.Series(d2).diff(1)
+        d1_diff = pd.Series(d1).diff(1)
+        
+        plt.figure(figsize=(14, 20))
+        plt.plot(a2, label="a2")
+        plt.plot(d2, label="d2")
+        plt.plot(d1, label="d1")
+        plt.legend()
+        plt.show()
+        
+        return a2_diff, d2_diff, d1_diff
     def func_pacf(self):
         None
 
@@ -105,7 +144,11 @@ class close():
 def main():
     data_day_close = close()
     # data_day_close.func_fft()
-    data_day_close.func_acf()
+    coeff = data_day_close.func_wavelet()
+    data_day_close.func_acf(coeff)
+    # coeff = list(data_day_close.func_diff())
+    # print(coeff)
+    #data_day_close.func_acf(coeff)
 
 
 if __name__ == "__main__":
