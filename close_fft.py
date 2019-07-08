@@ -128,11 +128,17 @@ class close():
         a2_diff = pd.Series(a2).diff(1)
         d2_diff = pd.Series(d2).diff(1)
         d1_diff = pd.Series(d1).diff(1)
-        
+        """
+            After diff, we will have several Series where have 'NaN' vaules in loc(0) of each Series
+            This outcome causes some errors during the procedure of acf.
+        """
+        a2_diff[0] = 0
+        d2_diff[0] = 0
+        d1_diff[0] = 0
         plt.figure(figsize=(14, 20))
-        plt.plot(a2, label="a2")
-        plt.plot(d2, label="d2")
-        plt.plot(d1, label="d1")
+        plt.plot(a2_diff, label="a2")
+        plt.plot(d2_diff, label="d2")
+        plt.plot(d1_diff, label="d1")
         plt.legend()
         plt.show()
         
@@ -146,9 +152,9 @@ def main():
     # data_day_close.func_fft()
     coeff = data_day_close.func_wavelet()
     data_day_close.func_acf(coeff)
-    # coeff = list(data_day_close.func_diff())
+    coeff = list(data_day_close.func_diff())
     # print(coeff)
-    #data_day_close.func_acf(coeff)
+    data_day_close.func_acf(coeff)
 
 
 if __name__ == "__main__":
