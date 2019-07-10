@@ -1,3 +1,4 @@
+import os
 import warnings
 import itertools
 import pandas as pd
@@ -9,6 +10,7 @@ from parser_csv import parser_csv
 from collections import defaultdict
 from statsmodels.tsa.arima_model import ARIMA
 from statsmodels.tsa.stattools import acf, pacf
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
 
 class close():
     """
@@ -24,9 +26,27 @@ class close():
         @param: self
         @return: list<numpy.ndarray>
         @description: wavelet stock series into 1 high freq and 2 low freq
+
+        @method: func_acf
+        @param: self, list<numpy.narray> coeff
+        @return: tuple<numpy.narray>[3]
+        @description: receive the results of func_wavelet and return the acf.
+
+        @method: func_pacf
+        @description: similar with func_acf
+
+        @method: func_ARIMA
+        @param: self
+        @return: None
+        @description: ARIMA Model
+
+        @method: fun_data_split
+        @param: self
+        @return: 
     """
-    def __init__(self):
-        parsed_data = parser_csv("SPY.csv")
+    def __init__(self, filename):
+        self.filename = filename
+        parsed_data = parser_csv(self.filename)
         self.name = 'close'
         self.df = parsed_data.get_date_n_column(self.name)
 
@@ -175,6 +195,7 @@ class close():
         """
             After diff, we will have several Series where have 'NaN' vaules in loc(0) of each Series
             This outcome causes some errors during the procedure of acf.
+            Use numpy.diff instead of pd.Series.diff to solve this problem.
         """
 
         #a2_diff[0] = 0
@@ -217,9 +238,53 @@ class close():
         plt.legend()
         plt.show()
 
+    def func_standarized(self, data):
+        scaler = StandardScaler()
+        return scaler.fit_transform(data)
+
+    def func_norm(self, data):
+        scaler = MinMaxScaler()
+        return scaler.transform(data)
+
+    def func_data_split(self):
+        tmp_df = self.df
+        test_size = 0.045
+        cv_size = 0.2
+
+        target = 'close'
+        drop_col_0 = ['Date', target]
+        drop_col_1 = []
+        drop_col = drop_col_0 + drop_col_1
+
+        num_valid = int(len(tmp_df) * cv_size)
+        num_test = int(len(tmp_df) * test_size)
+        num_train = len(tmp_df) - num_valid - num_test
+
+        train_data = tmp_df[:num_train]
+        valid_data = tmp_df[num_train:num_train + num_valid]
+        train_valid_data = tmp_df[:num_train + num_valid]
+        test_data = tmp_df[num_train + num_valid:]
+
+        train_valid_data.to_csv(os.path.join(os.getcwd(), 'train.csv'), index=False)
+        test_data.to_csv(os.path.join(os.getcwd(), 'test.csv'), index=False)
+
+        Col_train = train_data[target].values
+        Col_valid = valid_data[target].vaules
+        Col_test = test_data[target].values
+
+        Row_train = train_data.drop(drop_col, axis=1)
+        Row_valid = valid_data.drop(drop_col, axis=1)
+        Row_test = test_data.drop(drop_col, axis=1)
+        features = test_data.columns.values.tolist()
+        Row_train = self.func_standarized(Row_train.values)
+        Row_valid = self.func_standarized(Row_valid.values)
+        Row_test = self.func_standarized(Row_test.values)
+
+        return Row_train, Col_train, Row_valid, Col_valid, Row_test, Col_test, features
+
 
 def main():
-    data_day_close = close()
+    data_day_close = close("SPY.csv")
     # data_day_close.func_fft()
     coeff = data_day_close.func_wavelet()
     # print(coeff)
@@ -228,8 +293,9 @@ def main():
     # print(coeff)
     data_day_close.func_acf(coeff)
     data_day_close.func_pacf(coeff)
-    
+
     data_day_close.func_ARIMA()
+
 
 if __name__ == "__main__":
     main()
