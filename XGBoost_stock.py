@@ -14,7 +14,7 @@ class close_xgboost():
     """
     Static variables for close_xgboost
     """
-    Row_train, Col_train, Row_valid, Col_valid, Row_test, Col_test, features = self.feature_cls.func_data_split()
+    Row_train, Col_train, Row_valid, Col_valid, Row_test, Col_test, features = close_xgboost.feature_cls.func_data_split()
     def __init__(self, filename):
         self.filename = filename
         self.feature_cls = close(self.filename)
@@ -66,8 +66,13 @@ class close_xgboost():
         xgb.plot_importance(model, max_num_features=-20)
         plt.show()
 
-        def create_feature_map(self):
-            with open(os.path.join(os.getcwd(), "xgb.fmap", 'w')) as fp:
-                i = 0
-                for feat in features:
-                    if feat != ''
+    def create_feature_map(self):
+        with open(os.path.join(os.getcwd(), "xgb.fmap", 'w')) as fp:
+            i = 0
+            for feat in features:
+                if feat != '':
+                    """
+                        This Column should contain some features that do not want to be included
+                    """
+                    fp.write("{index}\t{feature}\t q \n".format(index=i, feature=feat))
+                    i += 1
