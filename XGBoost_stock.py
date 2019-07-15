@@ -14,7 +14,7 @@ class close_xgboost():
     """
     Static variables for close_xgboost
     """
-    Row_train, Col_train, Row_valid, Col_valid, Row_test, Col_test, features = close_xgboost.feature_cls.func_data_split()
+    
     def __init__(self, filename):
         self.filename = filename
         self.feature_cls = close(self.filename)
@@ -26,7 +26,7 @@ class close_xgboost():
         self.low_freq_data
         self.high_freq_data_1
         self.high_freq_data_2
-
+        self.Row_train, self.Col_train, self.Row_valid, self.Col_valid, self.Row_test, self.Col_test, self.features = self.feature_cls.func_data_split()
     def wavelet(self):
         coeff = self.feature_cls.func_wavelet()
         self.low_freq_data = coeff[0]
@@ -48,20 +48,20 @@ class close_xgboost():
         return mean_absolute_error(np.exp(y), np.exp(y_data))
 
     def train_model_origin_interface(self):
-        data_train = xgb.DMatrix(Row_train, Col_train)
-        data_valid = xgb.DMatrix(Row_valid, Col_valid)
+        data_train = xgb.DMatrix(self.Row_train, self.Col_train)
+        data_valid = xgb.DMatrix(self.Row_valid, self.Col_valid)
 
         num_rounds = 7000
         watch_lst = [(data_train, 'train'), (data_valid, 'valid')]
 
         model = xgb.train(self.params, data_train, num_rounds, evals=watch_lst)
-        data_test = xgb.DMatrix(Row_test)
+        data_test = xgb.DMatrix(self.Row_test)
         predict = model.predict(data_test, ntree_limit=model.best_ntree_limit)
         res = pd.DataFrame(predict, columns=['predict'])
-        res['True'] = Col_test
+        res['True'] = self.Col_test
         res.to_csv(os.path.join(os.getcwd(), 'res.csv'), index=False)
 
-        score = self.roc_auc_score(Col_Test, predict)
+        score = self.roc_auc_score(self.Col_test, predict)
 
         xgb.plot_importance(model, max_num_features=-20)
         plt.show()
@@ -69,7 +69,7 @@ class close_xgboost():
     def create_feature_map(self):
         with open(os.path.join(os.getcwd(), "xgb.fmap", 'w')) as fp:
             i = 0
-            for feat in features:
+            for feat in self.features:
                 if feat != '':
                     """
                         This Column should contain some features that do not want to be included
