@@ -24,12 +24,12 @@ class close():
 
         @method: func_wavelet
         @param: self
-        @return: list<numpy.ndarray>
+        @return: list<numpy.array>
         @description: wavelet stock series into 1 high freq and 2 low freq
 
         @method: func_acf
-        @param: self, list<numpy.narray> coeff
-        @return: tuple<numpy.narray>[3]
+        @param: self, list<numpy.array> coeff
+        @return: tuple<numpy.array>[3]
         @description: receive the results of func_wavelet and return the acf.
 
         @method: func_pacf
@@ -246,6 +246,12 @@ class close():
         scaler = MinMaxScaler()
         return scaler.transform(data)
 
+    def time_series_to_supervised(self):
+        """
+        Split train set into several sets.
+        One dimension into mulit-dimension?
+        """
+
     def func_data_split(self):
         tmp_df = self.df
         test_size = 0.045
@@ -282,6 +288,12 @@ class close():
 
         return Row_train, Col_train, Row_valid, Col_valid, Row_test, Col_test, features
 
+    def func_wavelet_splited(self):
+        """
+        input: train set
+        output: the wavelet trans of train set
+        and 
+        """
 
 def main():
     data_day_close = close("SPY.csv")

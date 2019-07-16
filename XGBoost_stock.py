@@ -3,6 +3,7 @@ import pickle
 import pandas as pd
 import numpy as np
 import xgboost as xgb
+import operator
 from close_fft import close
 from matplotlib import pyplot as plt
 from sklearn import metrics
@@ -19,14 +20,28 @@ class close_xgboost():
         self.filename = filename
         self.feature_cls = close(self.filename)
         self.params = {
-            """
-                Parameters here.
-            """
+            'booster': 'gbtress',
+            'objective': 'multi:softmax',
+            'gamma': 0.3,
+            'max_depth': 3,
+            'alpha': 1e-05,
+            'subsample': 0.8,
+            'colsample_bytree': 0.8,
+            'min_child_weight': 1,
+            'silent': 1,
+            'eta': 0.01,
+            'seed': 36,
+            'nthread': 4,
+            'num_class': 2,
+            'scale_pos_weight': 1,
+            'n_estimators': 500
         }
         self.low_freq_data
         self.high_freq_data_1
         self.high_freq_data_2
         self.Row_train, self.Col_train, self.Row_valid, self.Col_valid, self.Row_test, self.Col_test, self.features = self.feature_cls.func_data_split()
+        self.model
+
     def wavelet(self):
         coeff = self.feature_cls.func_wavelet()
         self.low_freq_data = coeff[0]
@@ -54,16 +69,16 @@ class close_xgboost():
         num_rounds = 7000
         watch_lst = [(data_train, 'train'), (data_valid, 'valid')]
 
-        model = xgb.train(self.params, data_train, num_rounds, evals=watch_lst)
+        self.model = xgb.train(self.params, data_train, num_rounds, evals=watch_lst)
         data_test = xgb.DMatrix(self.Row_test)
-        predict = model.predict(data_test, ntree_limit=model.best_ntree_limit)
+        predict = self.model.predict(data_test, ntree_limit=self.model.best_ntree_limit)
         res = pd.DataFrame(predict, columns=['predict'])
         res['True'] = self.Col_test
         res.to_csv(os.path.join(os.getcwd(), 'res.csv'), index=False)
 
         score = self.roc_auc_score(self.Col_test, predict)
 
-        xgb.plot_importance(model, max_num_features=-20)
+        xgb.plot_importance(self.model, max_num_features=-20)
         plt.show()
 
     def create_feature_map(self):
@@ -75,4 +90,17 @@ class close_xgboost():
                         This Column should contain some features that do not want to be included
                     """
                     fp.write("{index}\t{feature}\t q \n".format(index=i, feature=feat))
-                    i += 1
+                i += 1
+
+    def feature_importance(self):
+        importance = self.model.get_fscore(fmap='xgb.fmap')
+        importance = sorted(importance.items(), key=operator.itemgetter(1))
+        df = pd.DataFrame(importance, columns=['feature', 'fscore'])
+        df['fscore'] = df['fscore'] / df['fscore'].sum()
+        print(df[df['fscore'] < 0.001]['feature'].tolist())
+
+def main():
+    model = close_xgboost("SPY.csv")
+    model.wavelet()
+    model.train_model_origin_interface()
+    model.create_feature_map()
