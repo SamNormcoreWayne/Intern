@@ -201,14 +201,14 @@ class close():
         #a2_diff[0] = 0
         #d2_diff[0] = 0
         #d1_diff[0] = 0
-        """
+        
+        """"""
         plt.figure(figsize=(14, 20))
         plt.plot(a2_diff, label="a2")
         plt.plot(d2_diff, label="d2")
         plt.plot(d1_diff, label="d1")
         plt.legend()
         plt.show()
-        """
         
         # a2_diff.dropna(inplace=True)
         # d2_diff.dropna(inplace=True)
@@ -246,11 +246,27 @@ class close():
         scaler = MinMaxScaler()
         return scaler.transform(data)
 
-    def time_series_to_supervised(self):
+    def time_series_to_supervised(self, length_in, length_out, drop=True):
         """
         Split train set into several sets.
         One dimension into mulit-dimension?
         """
+        columns = self.df.shape[1]
+
+        df = self.df
+        cols, names = list(), list()
+        for i in range(length_in, 0, -1):
+            cols.append(df.shift(i))
+            if i == 0:
+                names += [('var{}(t)'.format(j + 1)) for j in range(columns)]
+            else:
+                names += [('var{}(t + {})'.format(j + 1, i) for j in range(columns))]
+        data = pd.concat(cols, axis=1)
+        data.columns = names
+        if drop:
+            data.dropna(inplace=True)
+        return data
+
 
     def func_data_split(self):
         tmp_df = self.df
@@ -294,6 +310,7 @@ class close():
         output: the wavelet trans of train set
         and 
         """
+        
 
 def main():
     data_day_close = close("SPY.csv")
