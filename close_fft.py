@@ -24,12 +24,12 @@ class close():
 
         @method: func_wavelet
         @param: self
-        @return: list<numpy.array>
+        @return: list<numpy.ndarray>
         @description: wavelet stock series into 1 high freq and 2 low freq
 
         @method: func_acf
-        @param: self, list<numpy.array> coeff
-        @return: tuple<numpy.array>[3]
+        @param: self, list<numpy.ndarray> coeff
+        @return: tuple<numpy.ndarray>[3]
         @description: receive the results of func_wavelet and return the acf.
 
         @method: func_pacf
@@ -203,12 +203,12 @@ class close():
         #d1_diff[0] = 0
         
         """"""
-        plt.figure(figsize=(14, 20))
+        """plt.figure(figsize=(14, 20))
         plt.plot(a2_diff, label="a2")
         plt.plot(d2_diff, label="d2")
         plt.plot(d1_diff, label="d1")
         plt.legend()
-        plt.show()
+        plt.show()"""
         
         # a2_diff.dropna(inplace=True)
         # d2_diff.dropna(inplace=True)
@@ -233,7 +233,7 @@ class close():
         plt.figure(figsize=(14, 20))
         plt.plot(a2, label="origin")
         plt.plot(a2_diff, label="diff")
-        plt.plot(a2_fit.fittedvalues, label="fitted")
+        plt.plot(-a2_fit.fittedvalues, label="fitted")
         plt.grid()
         plt.legend()
         plt.show()
@@ -304,26 +304,20 @@ class close():
 
         return Row_train, Col_train, Row_valid, Col_valid, Row_test, Col_test, features
 
-    def func_wavelet_splited(self):
-        """
-        input: train set
-        output: the wavelet trans of train set
-        and 
-        """
-        
 
 def main():
     data_day_close = close("SPY.csv")
     # data_day_close.func_fft()
     coeff = data_day_close.func_wavelet()
     # print(coeff)
+    print(coeff[0])
     #data_day_close.func_acf(coeff)
     coeff = list(data_day_close.func_diff())
     # print(coeff)
-    data_day_close.func_acf(coeff)
-    data_day_close.func_pacf(coeff)
+    #data_day_close.func_acf(coeff)
+    #data_day_close.func_pacf(coeff)
 
-    data_day_close.func_ARIMA()
+    # data_day_close.func_ARIMA()
 
 
 if __name__ == "__main__":
