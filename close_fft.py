@@ -49,6 +49,7 @@ class close():
         parsed_data = parser_csv(self.filename)
         self.name = 'close'
         self.df = parsed_data.get_date_n_column(self.name)
+        self.df = pd.DataFrame(self.df[self.name].values, index=self.df['Date'], columns=[self.name])
 
     def func_fft(self):
         tmp_df = self.df.copy()
@@ -95,7 +96,7 @@ class close():
         tmp_df = self.df.copy()
         A2, D2, D1 = wavedec(tmp_df[self.name], "db4", level=2)
         # print(type(A2))
-        
+        #A2 = pd.DataFrame(A2, index)
         plt.figure(figsize=(14, 20))
         plt.plot(A2, label="A2")
         plt.plot(D2, label="D2")
@@ -304,13 +305,19 @@ class close():
 
         return Row_train, Col_train, Row_valid, Col_valid, Row_test, Col_test, features
 
+    def func_data_split_with_param(self, data):
+        """
+            @param: data
+            @type: numpy.ndarray
+        """
+        
 
 def main():
     data_day_close = close("SPY.csv")
     # data_day_close.func_fft()
     coeff = data_day_close.func_wavelet()
     # print(coeff)
-    print(coeff[0])
+    print(type(coeff[0]))
     #data_day_close.func_acf(coeff)
     coeff = list(data_day_close.func_diff())
     # print(coeff)
