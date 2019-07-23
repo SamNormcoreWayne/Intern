@@ -114,7 +114,10 @@ class ARIMA_estimation():
         d2_new = new_coeff[1]
         d1_new = new_coeff[2]
         denoised = waverec(coeff, 'db4')
-        
+        """
+            此处报错，因为ARIMA时数据经过差分处理。
+            未进行逆处理
+        """
         """
         Plotting
         """
