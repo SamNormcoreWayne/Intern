@@ -97,13 +97,14 @@ class close():
         A2, D2, D1 = wavedec(tmp_df[self.name], "db4", level=2)
         # print(type(A2))
         #A2 = pd.DataFrame(A2, index)
+        """
         plt.figure(figsize=(14, 20))
         plt.plot(A2, label="A2")
         plt.plot(D2, label="D2")
         plt.plot(D1, label="D1")
         plt.legend()
         plt.show()
-        
+        """
         return [A2, D2, D1]
 
     def func_acf(self, coeff):
@@ -226,15 +227,30 @@ class close():
         plt.plot(a2)
         plt.show()"""
         a2_diff, d2_diff, d1_diff = self.func_diff()
-        a2_model = ARIMA(a2, order=(1,2,1))
+        a2_model = ARIMA(a2, order=(1,1,2))
+        d2_model = ARIMA(d2, order=(2,0,2))
+        d1_model = ARIMA(d1, order=(1,0,2))
         a2_fit = a2_model.fit(disp=-1)
+        d2_fit = d2_model.fit(disp=-1)
+        d1_fit = d1_model.fit(disp=-1)
         #a2_predict = a2_model.predict()
         a2_fitted_value = pd.Series(a2_fit.fittedvalues, copy=True)
         a2_fitted_value_sum = a2_fitted_value.cumsum()
-        plt.figure(figsize=(14, 20))
-        plt.plot(a2, label="origin")
+        plt.figure(figsize=(40, 40))
+        #plt.plot(a2, label="origin")
+        plt.subplot(221)
         plt.plot(a2_diff, label="diff")
-        plt.plot(-a2_fit.fittedvalues, label="fitted")
+        plt.plot(a2_fit.fittedvalues, label="fitted")
+        plt.grid()
+        plt.legend()
+        plt.subplot(222)
+        plt.plot(d2_diff, label="diff_d2")
+        plt.plot(d2_fit.fittedvalues, label="fitted_d2")
+        plt.grid()
+        plt.legend()
+        plt.subplot(223)
+        plt.plot(d1_diff, label="diff_d1")
+        plt.plot(d1_fit.fittedvalues, label="fitted_d1")
         plt.grid()
         plt.legend()
         plt.show()
@@ -315,16 +331,16 @@ class close():
 def main():
     data_day_close = close("SPY.csv")
     # data_day_close.func_fft()
-    coeff = data_day_close.func_wavelet()
+    #coeff = data_day_close.func_wavelet()
     # print(coeff)
-    print(type(coeff[0]))
+    #print(type(coeff[0]))
     #data_day_close.func_acf(coeff)
-    coeff = list(data_day_close.func_diff())
+    #coeff = list(data_day_close.func_diff())
     # print(coeff)
     #data_day_close.func_acf(coeff)
     #data_day_close.func_pacf(coeff)
 
-    # data_day_close.func_ARIMA()
+    data_day_close.func_ARIMA()
 
 
 if __name__ == "__main__":

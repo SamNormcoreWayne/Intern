@@ -108,7 +108,7 @@ class close_xgboost():
         d_test = data[train_size + cv_size : ]
         return [d_train, d_cv, d_test]
 
-    """
+    
     def train_model_with_wavelet(self):
         num_round = 7000
         low_freq_set = self.split_data(self.low_freq_data)
@@ -127,11 +127,11 @@ class close_xgboost():
         high_freq_data_2_cv = high_freq_2_set[1]
         high_freq_data_2_test = high_freq_2_set[2]
         '''
-        '''
-        low_freq_data_train = xgb.DMatrix(low_freq_data_train)
-        low_freq_data_test = xgb.DMatrix(low_freq_data_test)
-        low_freq_data_cv = xgb.DMatrix(low_freq_data_cv)
-        '''
+        
+        low_freq_data_train = xgb.DMatrix(low_freq_data_train, label=['test'])
+        low_freq_data_test = xgb.DMatrix(low_freq_data_test, label=['test2'])
+        low_freq_data_cv = xgb.DMatrix(low_freq_data_cv, label=['test3'])
+        
         d_low_watchlst = [(low_freq_data_train, 'low_train'), (low_freq_data_cv, 'low_cv')]
         low_model = xgb.train(self.params, low_freq_data_train, num_boost_round=num_round, evals=d_low_watchlst)
 
@@ -147,7 +147,7 @@ class close_xgboost():
         print("score:", score)
         plot_importance(low_model, max_num_features=-20)
         plt.show()
-
+    """
     def create_feature_map(self):
         with open(os.path.join(os.getcwd(), "xgb.fmap", 'w')) as fp:
             i = 0
