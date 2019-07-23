@@ -119,6 +119,11 @@ class ARIMA_estimation():
             未进行逆处理
         """
         """
+            Use scipy.ndimage.interpolation.shift to shift data in np.ndarray
+            Or use pd.DataFrame.shift()
+            Add the shifted data to the diffed data.
+        """
+        """
         Plotting
         """
         plt.figure(figsize=(20, 20))
