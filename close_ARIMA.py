@@ -31,7 +31,7 @@ class ARIMA_estimation():
     def func_wavelet(self):
         tmp_df = self.df.copy()
         A2, D2, D1 = wavedec(tmp_df[self.name], 'db4', mode='sym', level=2)
-        return [A2, D2, D1]
+        return [pd.Series(A2), pd.Series(D2), pd.Series(D1)]
 
     def func_diff(self):
         coeff = self.func_wavelet()
@@ -73,9 +73,12 @@ class ARIMA_estimation():
         d2 = coeff[1]
         d1 = coeff[2]
 
-        a2_model = ARIMA(a2.values, order=(1, 1, 2))
+        a2_model = ARIMA(a2.values, order=(1, 2, 2))
         d2_model = ARIMA(d2.values, order=(2, 0, 2))
-        d1_model = ARIMA(d1.values, order=(1, 0, 2))
+        d1_model = ARIMA(d1.values, order=(0, 0, 2))
+        a2_model_fit = a2_model.fit(disp=-1)
+        d2_model_fit = d2_model.fit(disp=-1)
+        d1_model_fit = d1_model.fit(disp=-1)
         '''
         """
         Ploting
@@ -83,17 +86,17 @@ class ARIMA_estimation():
         plt.figure(figsize=(20, 20))
         plt.subplot(221)
         plt.plot(a2, label="origin_a2")
-        plt.plot(a2_model.fit(disp=-1).fittedvalues, label="fit_a2")
+        plt.plot(-a2_model_fit.fittedvalues, label="fit_a2")
         plt.legend()
         plt.grid()
         plt.subplot(222)
         plt.plot(d2, label="origin_d2")
-        plt.plot(d2_model.fit(disp=-1).fittedvalues, label="fit_d2")
+        plt.plot(d2_model_fit.fittedvalues, label="fit_d2")
         plt.legend()
         plt.grid()
         plt.subplot(223)
         plt.plot(d1, label="origin_d1")
-        plt.plot(d1_model.fit(disp=-1).fittedvalues, label="fit_d1")
+        plt.plot(d1_model_fit.fittedvalues, label="fit_d1")
         plt.legend()
         plt.grid()
         plt.show()
@@ -101,9 +104,9 @@ class ARIMA_estimation():
         Plot End Here
         """
         '''
-        a2_fitted = -a2_model.fit(disp=-1).fittedvalues
-        d2_fitted = -d2_model.fit(disp=-1).fittedvalues
-        d1_fitted = -d1_model.fit(disp=-1).fittedvalues
+        a2_fitted = -a2_model_fit.fittedvalues
+        d2_fitted = -d2_model_fit.fittedvalues
+        d1_fitted = -d1_model_fit.fittedvalues
         return [a2_fitted, d2_fitted, d1_fitted]
     
     def func_waverec(self, coeff, new_coeff):
@@ -113,7 +116,16 @@ class ARIMA_estimation():
         a2_new = new_coeff[0]
         d2_new = new_coeff[1]
         d1_new = new_coeff[2]
-        denoised = waverec(coeff, 'db4')
+        """a2_new = np.append([a2[0], 0], a2_new)
+        a2_new = shift(a2, -1) + a2_new
+        d2_new = np.append([d2[0]], d2_new)
+        d2_new = shift(d2, 1) + d2_new
+        d1_new = np.append([d1[0]], d1_new)
+        d1_new = shift(d1, 1) + d1_new"""
+        a2_new = a2_new.cumsum()
+        d2_new = d2_new.cumsum()
+        d1_new = d1_new.cumsum()
+        denoised = waverec([a2_new, d2_new, d1_new], '')
         """
             此处报错，因为ARIMA时数据经过差分处理。
             未进行逆处理
@@ -124,7 +136,7 @@ class ARIMA_estimation():
             Add the shifted data to the diffed data.
         """
         """
-        Plotting
+            Plotting
         """
         plt.figure(figsize=(20, 20))
         plt.plot(denoised)
@@ -133,43 +145,57 @@ class ARIMA_estimation():
         Plot End
         """
 
+    def test(self):
+        coeff = self.func_wavelet()
+        denoised = waverec(coeff, 'db4')
+        plt.figure(figsize=(20, 14))
+        plt.plot(denoised, label='rec')
+        plt.plot(self.df['close'].values, label='origin')
+        plt.legend()
+        plt.show()
+
 def main():
-    plt.figure(figsize=(20, 20))
+    plt.figure(figsize=(14, 14))
     close = ARIMA_estimation('close')
     coeff = close.func_wavelet()
+    #close.func_estimation(coeff)
+    new_coeff = close.func_ARIMA_model(coeff)
+
     a2_b4 = coeff[0]
     d2_b4 = coeff[1]
     d1_b4 = coeff[2]
-    plt.subplot(221)
+    # plt.subplot(221)
     plt.plot(a2_b4, label='before')
-    coeff = close.func_diff()
     #close.func_estimation(coeff)
-    coeff = close.func_ARIMA_model(coeff)
-    a2 = coeff[0]
+    a2 = new_coeff[0]
     print(a2_b4)
-    a2 = np.append([0 , 0], a2)
-    a2 = a2_b4 + a2
+    a2 = np.append([a2_b4[0], 0], a2)
+    a2 = shift(a2_b4, 1) + a2
+    
     """
-        此处出错，差分和原数据的相加方式不对，原数据应当后移一位，待修改
+        此处依然出错
+        没有正确的将差分后的数据复原。
     """
     plt.plot(a2, label='after')
     plt.legend()
-    plt.subplot(222)
+    plt.figure(figsize=(14, 14))
+    # plt.subplot(222)
     plt.plot(d2_b4, label='d2_b4')
-    d2 = coeff[1]
-    d2 = np.append([0], d2)
-    d2 = d2_b4 - d2
+    d2 = new_coeff[1]
+    d2 = shift(d2_b4, -1) + d2
     plt.plot(d2, label='d2_after')
     plt.legend()
-    plt.subplot(223)
+    #plt.subplot(223)
+    plt.figure(figsize=(14, 14))
     plt.plot(d1_b4, label='d1_b4')
-    d1 = coeff[2]
-    d1 = np.append([0], d1)
-    d1 = d1_b4 - d1
+    d1 = new_coeff[2]
+    d1 = shift(d1_b4, -1) + d1
     plt.plot(d1, label='d1_after')
     plt.show()
-    #close.func_waverec(coeff)
-
+    
+    close.func_waverec(coeff, new_coeff)
+    # close.test()
+    
 
 if __name__ == "__main__":
     warnings.filterwarnings("ignore")
