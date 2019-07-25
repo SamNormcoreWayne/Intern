@@ -7,7 +7,7 @@ from pywt import wavedec
 from statsmodels import api
 from matplotlib import pyplot as plt
 from parser_csv import parser_csv
-from collections import defaultdict
+from collections import defaultdicts
 from statsmodels.tsa.arima_model import ARIMA
 from statsmodels.tsa.stattools import acf, pacf
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
@@ -219,6 +219,14 @@ class close():
         return a2_diff, d2_diff, d1_diff
 
     def func_ARIMA(self):
+        """
+        parameters in ARIMA should follow the results of experiment in close_ARIMA.py
+        And, we won't use the diff function: 'self.func_diff'
+        Because on the basis of 'close_ARIMA.py'
+        ARIMA(2, 1, 2) deals with the low freq data well.
+        HOWEVER, we would like to do more exp in future by diff funcs and ARMA due to the limitaion
+        in ARIMA that we can only do differece twice. 
+        """
         coeff = self.func_wavelet()
         a2 = coeff[0]
         d2 = coeff[1]
@@ -227,15 +235,13 @@ class close():
         plt.plot(a2)
         plt.show()"""
         a2_diff, d2_diff, d1_diff = self.func_diff()
-        a2_model = ARIMA(a2, order=(1,1,2))
+        a2_model = ARIMA(a2, order=(1,2,2))
         d2_model = ARIMA(d2, order=(2,0,2))
-        d1_model = ARIMA(d1, order=(1,0,2))
+        d1_model = ARIMA(d1, order=(0,0,2))
         a2_fit = a2_model.fit(disp=-1)
         d2_fit = d2_model.fit(disp=-1)
         d1_fit = d1_model.fit(disp=-1)
-        #a2_predict = a2_model.predict()
-        a2_fitted_value = pd.Series(a2_fit.fittedvalues, copy=True)
-        a2_fitted_value_sum = a2_fitted_value.cumsum()
+        '''
         plt.figure(figsize=(40, 40))
         #plt.plot(a2, label="origin")
         plt.subplot(221)
@@ -254,6 +260,11 @@ class close():
         plt.grid()
         plt.legend()
         plt.show()
+        '''
+        a2_fitted = -a2_fit.fittedvalues
+        d2_fitted = d2_fit.fittedvalues
+        d1_fitted = d1_fit.fittedvalues
+        return [a2_fitted, d2_fitted, d1_fitted]
 
     def func_standarized(self, data):
         scaler = StandardScaler()
@@ -326,7 +337,6 @@ class close():
             @param: data
             @type: numpy.ndarray
         """
-        
 
 def main():
     data_day_close = close("SPY.csv")
