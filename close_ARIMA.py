@@ -20,6 +20,44 @@ Hyper-paramters estimation
 Use SARIMAX() in statsmodels to estimate parameters ARIMA(p,d,q)
 """
 class ARIMA_estimation():
+    """
+        @attribute: data
+        @type: pandas.DataFrame
+
+        @attribute: name
+        @type: str
+
+        @attribute: df
+        @type: pandas.DataFrame
+
+        @attribute: paramcombo
+        @type: list<tuple>[27]
+
+        @method: func_wavelet
+        @param: self
+        @return: list<pd.Series>[3]
+        @desc: use pywt.wavedec with 'db4' to decomp data
+
+        @method: func_diff
+        @param: self
+        @return: list<pd.Series>[3]
+        @desc: do difference to data
+
+        @method: func_estimation
+        @param: list<pd.Series> *coeff
+        @return: None
+        @desc: param estimation of ARIMA
+
+        @method: func_ARIMA_model
+        @param: list<pd.Series> *coeff
+        @return: list<pd.Series>[3]
+        @desc: the ARIMA model of three layers data from wavelet //// do not ask me why there is a minus
+
+        @method: func_waverec
+        @param: list<pd.Series> *coeff
+        @return: None
+        @desc: pywt.waverec inverse dwt. input data into csv file. 
+    """
     def __init__(self, name):
         self.data = parser_csv("SPY.csv")
         self.name = name
@@ -105,8 +143,8 @@ class ARIMA_estimation():
         """
         '''
         a2_fitted = -a2_model_fit.fittedvalues
-        d2_fitted = -d2_model_fit.fittedvalues
-        d1_fitted = -d1_model_fit.fittedvalues
+        d2_fitted = d2_model_fit.fittedvalues
+        d1_fitted = d1_model_fit.fittedvalues
         return [a2_fitted, d2_fitted, d1_fitted]
     
     def func_waverec(self, coeff, new_coeff):
@@ -120,17 +158,12 @@ class ARIMA_estimation():
         a2_new = shift(a2, 1) + a2_new
         d2_new = shift(d2, -1) + d2_new
         d1_new = shift(d1, -1) + d1_new
-
-        denoised = waverec([a2_new, d2_new, d1_new], 'db4')
-        """
-            此处报错，因为ARIMA时数据经过差分处理。
-            未进行逆处理
-        """
         """
             Use scipy.ndimage.interpolation.shift to shift data in np.ndarray
             Or use pd.DataFrame.shift()
             Add the shifted data to the diffed data.
         """
+        denoised = waverec([a2_new, d2_new, d1_new], 'db4')
         """
             Plotting
         """
@@ -144,15 +177,6 @@ class ARIMA_estimation():
         """
         self.data.df['denoised'] = denoised[1:]
         self.data.df.to_csv('denoised.csv', index=False)
-
-    def test(self):
-        coeff = self.func_wavelet()
-        denoised = waverec(coeff, 'db4')
-        plt.figure(figsize=(20, 14))
-        plt.plot(denoised, label='rec')
-        plt.plot(self.df['close'].values, label='origin')
-        plt.legend()
-        plt.show()
 
 def main():
     plt.figure(figsize=(14, 14))
@@ -171,11 +195,6 @@ def main():
     print(a2_b4)
     a2 = np.append([a2_b4[0], 0], a2)
     a2 = shift(a2_b4, 1) + a2
-    
-    """
-        此处依然出错
-        没有正确的将差分后的数据复原。
-    """
     plt.plot(a2, label='after')
     plt.legend()
     plt.figure(figsize=(14, 14))
