@@ -116,16 +116,12 @@ class ARIMA_estimation():
         a2_new = new_coeff[0]
         d2_new = new_coeff[1]
         d1_new = new_coeff[2]
-        """a2_new = np.append([a2[0], 0], a2_new)
-        a2_new = shift(a2, -1) + a2_new
-        d2_new = np.append([d2[0]], d2_new)
-        d2_new = shift(d2, 1) + d2_new
-        d1_new = np.append([d1[0]], d1_new)
-        d1_new = shift(d1, 1) + d1_new"""
-        a2_new = a2_new.cumsum()
-        d2_new = d2_new.cumsum()
-        d1_new = d1_new.cumsum()
-        denoised = waverec([a2_new, d2_new, d1_new], '')
+        a2_new = np.append([a2[0], 0], a2_new)
+        a2_new = shift(a2, 1) + a2_new
+        d2_new = shift(d2, -1) + d2_new
+        d1_new = shift(d1, -1) + d1_new
+
+        denoised = waverec([a2_new, d2_new, d1_new], 'db4')
         """
             此处报错，因为ARIMA时数据经过差分处理。
             未进行逆处理
@@ -139,11 +135,15 @@ class ARIMA_estimation():
             Plotting
         """
         plt.figure(figsize=(20, 20))
-        plt.plot(denoised)
+        plt.plot(denoised, label='wavelet')
+        plt.plot(self.df['close'].values, label='origin')
+        plt.legend()
         plt.show()
         """
         Plot End
         """
+        self.data.df['denoised'] = denoised[1:]
+        self.data.df.to_csv('denoised.csv', index=False)
 
     def test(self):
         coeff = self.func_wavelet()
@@ -192,10 +192,10 @@ def main():
     d1 = shift(d1_b4, -1) + d1
     plt.plot(d1, label='d1_after')
     plt.show()
-    
+
     close.func_waverec(coeff, new_coeff)
     # close.test()
-    
+
 
 if __name__ == "__main__":
     warnings.filterwarnings("ignore")
