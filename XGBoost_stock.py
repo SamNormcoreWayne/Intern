@@ -21,21 +21,9 @@ class close_xgboost():
         self.filename = filename
         self.feature_cls = close(self.filename)
         self.params = {
-            'booster': 'gbtress',
-            'objective': 'multi:softmax',
-            'gamma': 0.3,
-            'max_depth': 3,
-            'alpha': 1e-05,
-            'subsample': 0.8,
-            'colsample_bytree': 0.8,
-            'min_child_weight': 1,
-            'silent': 1,
-            'eta': 0.01,
-            'seed': 36,
-            'nthread': 4,
-            'num_class': 2,
-            'scale_pos_weight': 1,
-            'n_estimators': 500
+            """
+            Parameters Here
+            """
         }
         self.low_freq_data = 0
         self.high_freq_data_1 = 0
