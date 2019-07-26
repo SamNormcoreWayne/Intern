@@ -7,7 +7,7 @@ from pywt import wavedec
 from statsmodels import api
 from matplotlib import pyplot as plt
 from parser_csv import parser_csv
-from collections import defaultdicts
+from collections import defaultdict
 from statsmodels.tsa.arima_model import ARIMA
 from statsmodels.tsa.stattools import acf, pacf
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
@@ -48,8 +48,8 @@ class close():
         self.filename = filename
         parsed_data = parser_csv(self.filename)
         self.name = 'close'
-        self.df = parsed_data.get_date_n_column(self.name)
-        self.df = pd.DataFrame(self.df[self.name].values, index=self.df['Date'], columns=[self.name])
+        self.df = parsed_data.df
+        # self.df.loc[:, 'Date'] = pd.to_datetime(self.df['Date'], format='%Y-%m-%d')
 
     def func_fft(self):
         tmp_df = self.df.copy()
@@ -295,6 +295,10 @@ class close():
             data.dropna(inplace=True)
         return data
 
+    """
+        Lacking of one function to get some tech indicator
+        Is this why causes the error in xgb training?
+    """
 
     def func_data_split(self):
         tmp_df = self.df
@@ -315,11 +319,11 @@ class close():
         train_valid_data = tmp_df[:num_train + num_valid]
         test_data = tmp_df[num_train + num_valid:]
 
-        train_valid_data.to_csv(os.path.join(os.getcwd(), 'train.csv'), index=False)
-        test_data.to_csv(os.path.join(os.getcwd(), 'test.csv'), index=False)
+        train_valid_data.to_csv(os.path.join(os.getcwd(), 'test_docs', 'train.csv'), index=False)
+        test_data.to_csv(os.path.join(os.getcwd(), 'test_docs', 'test.csv'), index=False)
 
         Col_train = train_data[target].values
-        Col_valid = valid_data[target].vaules
+        Col_valid = valid_data[target].values
         Col_test = test_data[target].values
 
         Row_train = train_data.drop(drop_col, axis=1)
@@ -338,8 +342,16 @@ class close():
             @type: numpy.ndarray
         """
 
+    def func_one_hot(self, data):
+        if data > 0:
+            new = 1
+        else:
+            new = 0
+        return new
+
+
 def main():
-    data_day_close = close("SPY.csv")
+    data_day_close = close("denoised.csv")
     # data_day_close.func_fft()
     #coeff = data_day_close.func_wavelet()
     # print(coeff)

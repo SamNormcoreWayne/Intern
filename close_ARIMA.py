@@ -146,7 +146,7 @@ class ARIMA_estimation():
         d2_fitted = d2_model_fit.fittedvalues
         d1_fitted = d1_model_fit.fittedvalues
         return [a2_fitted, d2_fitted, d1_fitted]
-    
+
     def func_waverec(self, coeff, new_coeff):
         a2 = coeff[0]
         d2 = coeff[1]
