@@ -21,21 +21,9 @@ class close_xgboost():
         self.filename = filename
         self.feature_cls = close(self.filename)
         self.params = {
-            'booster': 'gbtree',
-            'objective': 'multi:softmax',
-            'gamma': 0.3,
-            'max_depth': 3,
-            'alpha': 1e-05,
-            'subsample': 0.8,
-            'colsample_bytree': 0.8,
-            'min_child_weight': 1,
-            'silent': 1,
-            'eta': 0.01,
-            'seed': 36,
-            'nthread': 4,
-            'num_class': 2,
-            'scale_pos_weight': 1,
-            'n_estimators': 500
+            """
+            Parameters Here
+            """
         }
         self.Row_train, self.Col_train, self.Row_valid, self.Col_valid, self.Row_test, self.Col_test, self.features = self.feature_cls.func_data_split()
 
