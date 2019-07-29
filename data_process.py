@@ -1,13 +1,15 @@
 import os
+import talib
 import warnings
 import itertools
-import pandas as pd
 import numpy as np
+import pandas as pd
 from pywt import wavedec
+from talib import MA_Type
 from statsmodels import api
-from matplotlib import pyplot as plt
 from parser_csv import parser_csv
 from collections import defaultdict
+from matplotlib import pyplot as plt
 from statsmodels.tsa.arima_model import ARIMA
 from statsmodels.tsa.stattools import acf, pacf
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
@@ -299,7 +301,55 @@ class close():
         Lacking of one function to get some tech indicator
         Is this why causes the error in xgb training?
     """
+    def tech_indicator(self):
+        cp = self.df.copy()
+        close = cp.close.values
+        open_price = cp.close.values
+        high = cp.close.values
+        low = cp.low.values
+        volume = cp.volume.values
 
+        cp['SMA_5'] = talib.SMA(close, 5)
+        cp['upper'], cp['middle'], cp['low'] = talib.BBANDS(close, matype=MA_Type.T3)
+        cp['slowk'], cp['slowd'] = talib.STOCH(
+            high,
+            low,
+            close,
+            fastk_period=9, 
+            slowk_period=3,
+            slowk_matype=0,
+            slowd_period=3,
+            slowd_matype=0
+        )
+        cp['slowk_slowd'] = cp['slowk'] - cp['slowd']
+        cp['CCI'] = talib.CCI(high, low, close, timeperoid=10)
+        cp['DIF'], cp['DEA'], cp['HIST'] = talib.MACD(
+            close,
+            fastperiod=12,
+            slowperiod=26,
+            signalperiod=9
+        )
+        cp['BAR'] = (cp['DIF'] - cp['DEA']) * 2
+
+        cp['macdext'], cp['signal_xt'], cp['hist_xt'] = talib.MACDFIX(close, signalperiod=9)
+
+        cp['RSI'] = talib.RSI(close, timepriod=14)
+        cp['AROON_DOWN'], cp['AROON_UP'] = talib.AROON(high, low, timeperiod=14)
+
+        cp['upperband'], cp['middleband'], cp['lowerband'] = talib.BBANDS(
+            close,
+            timepriod=5,
+            nbdevup=2,
+            nbdevdn=2,
+            matype=0
+        )
+
+        cp['AD'] = talib.AD(high, low, close, volume)
+        cp['ADX'] = talib.ADX(high, low, close, timeperiod=14)
+        cp['ADXR'] = talib.ADXR(high, low, close, timeperiod=14)
+        cp['OBV'] = talib.OBV(close, volume)
+
+        return cp
     def func_data_split(self):
         tmp_df = self.df
         test_size = 0.045

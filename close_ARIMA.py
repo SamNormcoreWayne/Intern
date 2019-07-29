@@ -180,9 +180,9 @@ class ARIMA_estimation():
 
 def main():
     plt.figure(figsize=(14, 14))
-    close = ARIMA_estimation('close')
+    close = ARIMA_estimation('pct_change')
     coeff = close.func_wavelet()
-    #close.func_estimation(coeff)
+    # close.func_estimation(coeff)
     new_coeff = close.func_ARIMA_model(coeff)
 
     a2_b4 = coeff[0]
@@ -190,7 +190,7 @@ def main():
     d1_b4 = coeff[2]
     # plt.subplot(221)
     plt.plot(a2_b4, label='before')
-    #close.func_estimation(coeff)
+    # close.func_estimation(coeff)
     a2 = new_coeff[0]
     print(a2_b4)
     a2 = np.append([a2_b4[0], 0], a2)
@@ -204,7 +204,7 @@ def main():
     d2 = shift(d2_b4, -1) + d2
     plt.plot(d2, label='d2_after')
     plt.legend()
-    #plt.subplot(223)
+    # plt.subplot(223)
     plt.figure(figsize=(14, 14))
     plt.plot(d1_b4, label='d1_b4')
     d1 = new_coeff[2]
