@@ -46,7 +46,7 @@ class close():
         @param: self
         @return: 
     """
-    def __init__(self, filename):
+    def __init__(self, filename : str):
         self.filename = filename
         parsed_data = parser_csv(self.filename)
         self.name = 'close'
@@ -94,7 +94,7 @@ class close():
         """
         plt.show()
 
-    def func_wavelet(self):
+    def func_wavelet(self) -> [list]:
         tmp_df = self.df.copy()
         A2, D2, D1 = wavedec(tmp_df[self.name], "db4", level=2)
         # print(type(A2))
@@ -109,7 +109,7 @@ class close():
         """
         return [A2, D2, D1]
 
-    def func_acf(self, coeff):
+    def func_acf(self, coeff : [pd.DataFrame]) -> (pd.DataFrame):
         """
             @param: list<np.narray> coeff
         """
@@ -152,7 +152,7 @@ class close():
         """
         return a2_acf, d2_acf, d1_acf
 
-    def func_pacf(self, coeff):
+    def func_pacf(self, coeff : [pd.DataFrame]):
         a2_acf, a2_confi = pacf(np.asarray(coeff[0]), nlags=20, method='ols', alpha=True)
         d2_acf, d2_confi = pacf(np.asarray(coeff[1]), nlags=20, method='ols', alpha=True)
         d1_acf, d1_confi = pacf(np.asarray(coeff[2]), nlags=20, method='ols', alpha=True)
@@ -184,7 +184,7 @@ class close():
         plt.axhline(y=1.96/np.sqrt(len(d1_acf)), linestyle="--", color="red")
         plt.show()
 
-    def func_diff(self):
+    def func_diff(self) -> (np.ndarray):
         """
             @returnType: tuple<pd.Series>
         """
@@ -205,7 +205,7 @@ class close():
         #a2_diff[0] = 0
         #d2_diff[0] = 0
         #d1_diff[0] = 0
-        
+
         """"""
         """plt.figure(figsize=(14, 20))
         plt.plot(a2_diff, label="a2")
@@ -213,14 +213,14 @@ class close():
         plt.plot(d1_diff, label="d1")
         plt.legend()
         plt.show()"""
-        
+
         # a2_diff.dropna(inplace=True)
         # d2_diff.dropna(inplace=True)
         # d1_diff.dropna(inplace=True)
-        
+
         return a2_diff, d2_diff, d1_diff
 
-    def func_ARIMA(self):
+    def func_ARIMA(self) -> [np.ndarray]:
         """
         parameters in ARIMA should follow the results of experiment in close_ARIMA.py
         And, we won't use the diff function: 'self.func_diff'
@@ -268,11 +268,11 @@ class close():
         d1_fitted = d1_fit.fittedvalues
         return [a2_fitted, d2_fitted, d1_fitted]
 
-    def func_standarized(self, data):
+    def func_standarized(self, data : np.ndarray) -> "sklearn.preprocessing.StandardScaler().fit_transform() -> np.ndarray":
         scaler = StandardScaler()
         return scaler.fit_transform(data)
 
-    def func_norm(self, data):
+    def func_norm(self, data : np.ndarray) -> "sklearn.preprocessing.MinMaxScaler().transform() -> np.ndarray":
         scaler = MinMaxScaler()
         return scaler.transform(data)
 
@@ -301,7 +301,7 @@ class close():
         Lacking of one function to get some tech indicator
         Is this why causes the error in xgb training?
     """
-    def tech_indicator(self):
+    def tech_indicator(self) -> pd.DataFrame:
         cp = self.df.copy()
         close = cp.close.values
         open_price = cp.close.values
@@ -315,7 +315,7 @@ class close():
             high,
             low,
             close,
-            fastk_period=9, 
+            fastk_period=9,
             slowk_period=3,
             slowk_matype=0,
             slowd_period=3,
@@ -350,7 +350,7 @@ class close():
         cp['OBV'] = talib.OBV(close, volume)
 
         return cp
-    def func_data_split(self):
+    def func_data_split(self) -> "tuple(pd.Dataframe)[7]":
         tmp_df = self.df
         test_size = 0.045
         cv_size = 0.2

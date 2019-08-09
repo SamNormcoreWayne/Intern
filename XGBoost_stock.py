@@ -17,24 +17,36 @@ class close_xgboost():
     Static variables for close_xgboost
     """
 
-    def __init__(self, filename):
+    def __init__(self, filename : str):
         self.filename = filename
         self.feature_cls = close(self.filename)
         self.params = {
-            """
-            Parameters Here
-            """
+            'booster': 'gbtree',
+            'objective': 'multi:softmax',
+            'gamma': 0.3,
+            'max_depth': 3,
+            'alpha': 1e-05,
+            'subsample': 0.8,
+            'colsample_bytree': 0.8,
+            'min_child_weight': 1,
+            'silent': 1,
+            'eta': 0.01,
+            'seed': 36,
+            'nthread': 4,
+            'num_class': 2,
+            'scale_pos_weight': 1,
+            'n_estimators': 500
         }
         self.Row_train, self.Col_train, self.Row_valid, self.Col_valid, self.Row_test, self.Col_test, self.features = self.feature_cls.func_data_split()
 
-    def roc_auc_score(self, x, y):
+    def roc_auc_score(self, x : np.ndarray, y : np.ndarray) -> "sklearn.metrics.roc_auc_score() -> float":
         return metrics.roc_auc_score(x, y)
 
-    def func_auc(self, y, predict):
+    def func_auc(self, y : np.ndarray, predict : np.ndarray) -> "sklearn.metrics.auc() -> float":
         fpr, tpr, threshold = metrics.roc_curve(y, predict, pos_label=2)
         return metrics.auc(fpr, tpr)
 
-    def mean_abs_err(self, y_data, train_data):
+    def mean_abs_err(self, y_data : np.ndarray, train_data : pd.DataFrame) -> "sklearn.metrics.mean_absolute_error() -> ndarray[float]":
         y = train_data.get_label()
         """
         the train_data shall be pandas.Series/Dataframe
@@ -60,7 +72,7 @@ class close_xgboost():
         xgb.plot_importance(self.model, max_num_features=-20)
         plt.show()
 
-    def split_data(self, data):
+    def split_data(self, data : np.ndarray) -> [np.ndarray]:
         """
             @param: data
             @type: numpy.ndarray[n, 1]

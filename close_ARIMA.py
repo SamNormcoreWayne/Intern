@@ -58,20 +58,20 @@ class ARIMA_estimation():
         @return: None
         @desc: pywt.waverec inverse dwt. input data into csv file. 
     """
-    def __init__(self, name):
-        self.data = parser_csv("SPY.csv")
+    def __init__(self, name : str):
+        self.data = parser_csv("SPY_pct_change.csv")
         self.name = name
         self.df = self.data.get_date_n_column(self.name)
         self.df = pd.DataFrame(self.df[self.name].values, index=self.df['Date'], columns=[self.name])
         p = d = q = range(0, 3)
         self.paramcombo = list(itertools.product(p, d, q))
 
-    def func_wavelet(self):
+    def func_wavelet(self) -> [pd.Series]:
         tmp_df = self.df.copy()
         A2, D2, D1 = wavedec(tmp_df[self.name], 'db4', mode='sym', level=2)
         return [pd.Series(A2), pd.Series(D2), pd.Series(D1)]
 
-    def func_diff(self):
+    def func_diff(self) -> [pd.DataFrame]:
         coeff = self.func_wavelet()
         a2 = coeff[0]
         d2 = coeff[1]
@@ -83,7 +83,7 @@ class ARIMA_estimation():
 
         return [a2_diff, d2_diff, d1_diff]
 
-    def func_estimation(self, coeff):
+    def func_estimation(self, coeff : [pd.DataFrame]):
         combo = self.paramcombo
         table_a2 = PrettyTable(field_names=['a2', 'AIC'])
         table_d2 = PrettyTable(field_names=['d2', 'AIC'])
@@ -106,7 +106,7 @@ class ARIMA_estimation():
         print(table_d2.get_string(sortby='AIC'))
         print(table_d1.get_string(sortby='AIC'))
 
-    def func_ARIMA_model(self, coeff):
+    def func_ARIMA_model(self, coeff : [pd.DataFrame]) -> [pd.DataFrame]:
         a2 = coeff[0]
         d2 = coeff[1]
         d1 = coeff[2]
@@ -147,7 +147,7 @@ class ARIMA_estimation():
         d1_fitted = d1_model_fit.fittedvalues
         return [a2_fitted, d2_fitted, d1_fitted]
 
-    def func_waverec(self, coeff, new_coeff):
+    def func_waverec(self, coeff : [pd.DataFrame], new_coeff : [pd.DataFrame]):
         a2 = coeff[0]
         d2 = coeff[1]
         d1 = coeff[2]
@@ -182,38 +182,38 @@ def main():
     plt.figure(figsize=(14, 14))
     close = ARIMA_estimation('pct_change')
     coeff = close.func_wavelet()
-    # close.func_estimation(coeff)
-    new_coeff = close.func_ARIMA_model(coeff)
+    close.func_estimation(coeff)
+    # new_coeff = close.func_ARIMA_model(coeff)
 
-    a2_b4 = coeff[0]
-    d2_b4 = coeff[1]
-    d1_b4 = coeff[2]
-    # plt.subplot(221)
-    plt.plot(a2_b4, label='before')
-    # close.func_estimation(coeff)
-    a2 = new_coeff[0]
-    print(a2_b4)
-    a2 = np.append([a2_b4[0], 0], a2)
-    a2 = shift(a2_b4, 1) + a2
-    plt.plot(a2, label='after')
-    plt.legend()
-    plt.figure(figsize=(14, 14))
-    # plt.subplot(222)
-    plt.plot(d2_b4, label='d2_b4')
-    d2 = new_coeff[1]
-    d2 = shift(d2_b4, -1) + d2
-    plt.plot(d2, label='d2_after')
-    plt.legend()
-    # plt.subplot(223)
-    plt.figure(figsize=(14, 14))
-    plt.plot(d1_b4, label='d1_b4')
-    d1 = new_coeff[2]
-    d1 = shift(d1_b4, -1) + d1
-    plt.plot(d1, label='d1_after')
-    plt.show()
+    # a2_b4 = coeff[0]
+    # d2_b4 = coeff[1]
+    # d1_b4 = coeff[2]
+    # # plt.subplot(221)
+    # plt.plot(a2_b4, label='before')
+    # # close.func_estimation(coeff)
+    # a2 = new_coeff[0]
+    # print(a2_b4)
+    # a2 = np.append([a2_b4[0], 0], a2)
+    # a2 = shift(a2_b4, 1) + a2
+    # plt.plot(a2, label='after')
+    # plt.legend()
+    # plt.figure(figsize=(14, 14))
+    # # plt.subplot(222)
+    # plt.plot(d2_b4, label='d2_b4')
+    # d2 = new_coeff[1]
+    # d2 = shift(d2_b4, -1) + d2
+    # plt.plot(d2, label='d2_after')
+    # plt.legend()
+    # # plt.subplot(223)
+    # plt.figure(figsize=(14, 14))
+    # plt.plot(d1_b4, label='d1_b4')
+    # d1 = new_coeff[2]
+    # d1 = shift(d1_b4, -1) + d1
+    # plt.plot(d1, label='d1_after')
+    # plt.show()
 
-    close.func_waverec(coeff, new_coeff)
-    # close.test()
+    # close.func_waverec(coeff, new_coeff)
+    # # close.test()
 
 
 if __name__ == "__main__":
